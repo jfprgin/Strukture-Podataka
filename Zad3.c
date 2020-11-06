@@ -75,6 +75,7 @@ Pok Trazi(Pok p)
 
 	while (strcmpi(p->prezime, prezime) != 0 && p != NULL)
 		p = p->next;
+
 	return p;
 }
 Pok TraziPrev(Pok p)
@@ -96,7 +97,6 @@ Pok TraziPrev(Pok p)
 }
 int Brisi(Pok p)
 {
-
 	char prezime[50];
 	printf("Unesite prezime osobe koje zelite izbrisati: ");
 	scanf("%s", &prezime);
@@ -111,22 +111,86 @@ int Brisi(Pok p)
 		prev = p;
 		p = p->next;
 	}
+
 	return 0;
-
 }
-int Sort(Pok p)
+int Sortiraj(Pok p)
 {
+	Pok j, prev_j, temp, end;
+	end = NULL;
+	while (p->next != end)
+	{
+		prev_j = p;
+		j = p->next;
+		while (j->next != end)
+		{
+			if (strcmp(j->prezime, j->next->prezime) > 0)
+			{
+				temp = j->next;
+				prev_j->next = temp;
+				j->next = temp->next;
+				temp->next = j;
+				j = temp;
+			}
+			prev_j = j;
+			j = j->next;
+		}
+		end = j;
+	}
 
+	return 0;
 }
-int Write(Pok p)
+int PisiDat(Pok p)
 {
-	FILE *dat;
+	FILE * fPointer;
+	int max_bodovi = 200;
+	char imedat[50];
 
+	printf("Unesite ime datoteke:");
+	scanf(" %s", imedat);
+
+	fPointer = fopen(imedat, "r");
+	if (fPointer == NULL) {
+		printf("Greska pri otvaranju\n");
+		return -1;
+	}
+	while (p != NULL) {
+		fprintf(fPointer, "%s %s %d\n", p->ime, p->prezime, p->god_rod);
+		p = p->next;
+	}
+
+	fclose(fPointer);
+
+	return 0;
 }
-int Read(Pok p)
+int CitajDat(Pok p)
 {
+	Pok q;
+	FILE * fPointer;
+	int max_bodovi = 200;
+	char imedat[50];
 
+	printf("Unesite ime datoteke:");
+	scanf(" %s", imedat);
+
+	fPointer = fopen(imedat, "w");
+	if (fPointer == NULL) {
+		printf("Greska pri otvaranju\n");
+		return -1;
+	}
+	while (!feof(fPointer)) {
+		q = (Osoba*)malloc(sizeof(Osoba));
+		fscanf(fPointer, "%s %s %d", &q->ime, &q->prezime, &q->god_rod);
+		q->next = p->next;
+		p->next = q;
+		p = q;
+	}
+
+	fclose(fPointer);
+
+	return 0;
 }
+
 int main()
 {
 	Osoba *q;
@@ -140,12 +204,12 @@ int main()
 		printf("\n\t2 - unos elementa na kraj");
 		printf("\n\t3 - trazenje elementa u listi po prezimenu");
 		printf("\n\t4 - brisanje");
-		printf("\n\tk - kraj\n");
 		printf("\n\t5 - dodavanje iza elementa");
 		printf("\n\t6 - dodavanje ispred elementa");
 		printf("\n\t7 - sortiranje liste po prezimenu");
 		printf("\n\t8 - citanje iz datoteke");
 		printf("\n\t9 - upisivanje liste u datoteku");
+		printf("\n\tk - kraj\n");
 		printf("\nUnesi: ");
 		scanf(" %c", &izbor);
 		switch (izbor)
@@ -184,12 +248,16 @@ int main()
 				UnosP(q);
 			break;
 		case '7':
+			Sortiraj(&head);
 			break;
 		case '8':
+			PisiDat(head.next);
 			break;
 		case '9':
+			CitajDat(&head);
 			break;
 		}
 	}
+
 	return 0;
 }
