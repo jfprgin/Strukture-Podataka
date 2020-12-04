@@ -1,197 +1,148 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define BUFFER_LENGTH 1024
+#define _CRT_NONSTDC_NO_DEPRECATE
 
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<ctype.h>
 
-struct _Cvor;
-typedef struct _Cvor _CVOR;
-typedef struct _Cvor* Position;
-struct _Cvor
-{
-	int koeficijent;
-	int eksponent;
+struct _node;
+typedef struct _node Node;
+typedef Node* Position;
+
+struct _node{
+	int coefficijent;
+	int exponent;
 	Position Next;
 };
 
-int CreateNew(Position *);
-int ReadFromFile(Position);
+Position CreateNode(Position);
+int ReadFromFile(char*, Position);
 int PrintList(Position);
-int AddPoly(Position, Position, Position);
-int MulPoly(Position, Position, Position);
+int AddPolynoms(Position, Position, Position);
+int MulPolynoms(Position, Position, Position);
 
-int main(int argc, char *argv[])
+int main()
 {
-	int err = 0;
-	struct _Cvor P1, P2, S, M;
+	char filename[50];
+	Node head1, head2, head3, head4;
 
-	P1.Next = NULL;
-	P2.Next = NULL;
-	S.Next = NULL;
-	M.Next = NULL;
+	head1.Next = NULL;
+	head2.Next = NULL;
+	head3.Next = NULL;
+	head4.Next = NULL;
 
-	printf("\r\n\tPolinom 1.");
-	err = ReadFromFile(&P1);
-	if (err) return err;
-	printf("\r\n\tP1(x) = ");
-	PrintList(P1.Next);
+	printf("\nUnesite ime datoteke iz koje zelite ucitati prvi polinom: ");
+	scanf(" %s", filename);
+	ReadFromFile(filename, &head1);
+	printf("\nUnesite ime datoteke iz koje zelite ucitati drugi polinom: ");
+	scanf(" %s", filename);
+	ReadFromFile(filename, &head2);
+	
+	printf("\nPolinom 1 = ");
+	PrintList(head1.Next);
+	printf("\nPolinom 2 = ");
+	PrintList(head2.Next);
 
-	printf("\r\n\tPolinom 2.");
-	err = ReadFromFile(&P2);
-	if (err) return err;
-	printf("\r\n\tP2(x) = ");
-	PrintList(P2.Next);
+	printf("\nSuma polinoma = ");
+	AddPolynoms(head1.Next, head2.Next, &head3);
+	PrintList(head3.Next);
 
-	printf("\r\n\tSuma polinoma");
-	printf("\r\n\tS(x) = ");
-	AddPoly(P1.Next, P2.Next, &S);
-	if (err) return err;
-	PrintList(S.Next);
-
-	printf("\r\n\tUmnozak polinoma");
-	printf("\r\n\tM(x) = ");
-	MulPoly(P1.Next, P2.Next, &M);
-	if (err) return err;
-	PrintList(M.Next);
-
-	printf("\r\n\r\n");
-	return err;
-}
-
-int CreateNew(Position *head)
-{
-	Position q = NULL;
-
-	*head = (Position)malloc(sizeof(_CVOR));
-	if (*head == NULL) return -1;
-
-	q = *head;
-	q->Next = NULL;
+	printf("\nUmnozak polinoma = ");
+	MulPolynoms(head1.Next, head2.Next, &head4);
+	PrintList(head4.Next);
 
 	return 0;
 }
 
-int ReadFromFile(Position P)
+Position CreateNode(Position p)//Prominit da bude Position p jer ne znam smiju li se funckije bez argumenta
 {
-	int err = 0;
 	Position q = NULL;
-	Position tmp = NULL;
-	char *fileName = NULL;
-	FILE *fp = NULL;
 
-	fileName = (char*)malloc(sizeof(char) * BUFFER_LENGTH);
-	if (fileName == NULL) return -1;
-	memset(fileName, '\0', BUFFER_LENGTH);
+	q = (Position)malloc(sizeof(Node));
 
-	printf("\r\n\tUnesite ime dadoteke za citanje : ");
-	scanf(" %s", fileName);
-
-	if (strchr(fileName, '.') == NULL)
-		strcat(fileName, ".txt");
-
-	fp = fopen(fileName, "r");
-	if (fp == NULL)
-	{
-		printf("\r\n\tGRESKA!\r\n\t%s datoteka nije otvorena.", fileName);
+	if (q == NULL) {
+		printf("Greska pri alocrianju memorije\n");
 		return -1;
 	}
 
-	while (!feof(fp))
-	{
-		err = CreateNew(&q);
-		if (err)
-		{
-			printf("\r\n\tGRESKA!\r\n\tMemorija nije alocirana.");
-			break;
-		}
+	q->Next = NULL;
 
-		fscanf(fp, " %d %d", &q->koeficijent, &q->eksponent);
+	return q;
+}
 
-		tmp = P;
-		while (tmp->Next != NULL && tmp->Next->eksponent > q->eksponent)
-			tmp = tmp->Next;
-
-		if (tmp->Next != NULL && tmp->Next->eksponent == q->eksponent)
-		{
-			tmp->Next->koeficijent += q->koeficijent;
-			free(q);
-			if (tmp->Next->koeficijent == 0)
-			{
-				q = tmp->Next;
-				tmp->Next = q->Next;
-
-				free(q);
-			}
-		}
-		else
-		{
-			q->Next = tmp->Next;
-			tmp->Next = q;
-		}
-
+int ReadFromFile(char* filename, Position p)
+{
+	FILE *fPointer = NULL;
+	Position q, temp, prev;
+	
+	fPointer = fopen(filename, "r");
+	if (fPointer == NULL) {
+		printf("Greska pri otvaranju datoteke!");
+		return -1;
 	}
-	fclose(fp);
+	
+	while (!feof(fPointer))
+	{
+		q = CreateNode(p);
+		fscanf(" %d %d", q->coefficijent, q->exponent);
+		temp = p->Next;
+		prev = p;
 
-	return err;
+		while (temp != NULL && temp->exponent > q->exponent) {
+			q->Next = temp;
+			temp = temp->Next;
+		}
+		prev->Next = q;
+		if (temp != NULL)
+			q->Next = temp;
+		else
+			q->Next = NULL;
+	}
+	fclose(fPointer);
+
+	return 0;
 }
 
 int PrintList(Position P)
 {
-	int first = 1;
 	while (P != NULL)
 	{
-		if (first)
-		{
-			printf("%dx^%d", P->koeficijent, P->eksponent);
-			first = 0;
-		}
+		if (P->coefficijent > 0)
+			printf(" +%dx^%d", P->coefficijent, P->exponent);
 		else
-		{
-			if (P->koeficijent > 0)
-				printf(" +%dx^%d", P->koeficijent, P->eksponent);
-			else
-				printf(" %dx^%d", P->koeficijent, P->eksponent);
-		}
-
+			printf(" %dx^%d", P->coefficijent, P->exponent);
 		P = P->Next;
 	}
 
 	return 0;
 }
 
-int AddPoly(Position P1, Position P2, Position S)
+int AddPolynoms(Position P1, Position P2, Position S)
 {
-	int err = 0;
 	Position q = NULL;
-	Position tmp = NULL;
+	Position temp = NULL;
 
 	while (P1 != NULL && P2 != NULL)
 	{
-		err = CreateNew(&q);
-		if (err)
+		q = CreateNode(S);
+		
+		if (P1->exponent > P2->exponent)
 		{
-			printf("\r\nGRESKA!\r\nMemorija nije alocirana.");
-			break;
-		}
-
-		if (P1->eksponent > P2->eksponent)
-		{
-			q->eksponent = P1->eksponent;
-			q->koeficijent = P1->koeficijent;
+			q->exponent = P1->exponent;
+			q->coefficijent = P1->coefficijent;
 			P1 = P1->Next;
 		}
-		else if (P1->eksponent < P2->eksponent)
+		else if (P1->exponent < P2->exponent)
 		{
-			q->eksponent = P2->eksponent;
-			q->koeficijent = P2->koeficijent;
+			q->exponent = P2->exponent;
+			q->coefficijent = P2->coefficijent;
 			P2 = P2->Next;
 		}
 		else
 		{
-			q->eksponent = P1->eksponent;
-			q->koeficijent = P1->koeficijent + P2->koeficijent;
+			q->exponent = P1->exponent;
+			q->coefficijent = P1->coefficijent + P2->coefficijent;
 			P1 = P1->Next;
 			P2 = P2->Next;
 		}
@@ -202,89 +153,71 @@ int AddPoly(Position P1, Position P2, Position S)
 		S = q;
 	}
 
-	if (err) return err;
-
 	if (P1 == NULL)
-		tmp = P2;
+		temp = P2;
 	else
-		tmp = P1;
+		temp = P1;
 
-	while (tmp != NULL)
+	while (temp != NULL)
 	{
-		err = CreateNew(&q);
-		if (err)
-		{
-			printf("\r\nGRESKA!\r\nMemorija nije alocirana.");
-			break;
-		}
+		q = CreateNode(S);
 
-		q->eksponent = tmp->eksponent;
-		q->koeficijent = tmp->koeficijent;
+		q->exponent = temp->exponent;
+		q->coefficijent = temp->coefficijent;
 
 		q->Next = S->Next;
 		S->Next = q;
 
 		S = q;
 
-		tmp = tmp->Next;
+		temp = temp->Next;
 	}
 
-	return err;
+	return 0;
 }
 
-int MulPoly(Position P1, Position P2, Position M)
+int MulPolynoms(Position P1, Position P2, Position M)
 {
-	int err = 0;
 	Position q = NULL; 
-	Position  tmp = NULL;
-	Position i = NULL;
-	Position j = NULL;
+	Position  temp = NULL;
 
-	i = P1;
-
-	while (i != NULL)
+	while (P1 != NULL)
 	{
-		j = P2;
-		while (j != NULL)
+		while (P2 != NULL)
 		{
-			err = CreateNew(&q);
-			if (err)
+			q = CreateNode(M);
+
+			q->exponent = P1->exponent + P2->exponent;
+			q->coefficijent = P1->coefficijent * P2->coefficijent;
+
+			temp = M;
+
+			while (temp->Next != NULL && temp->Next->exponent > q->exponent)
+				temp = temp->Next;
+
+			if (temp->Next != NULL && temp->Next->exponent == q->exponent)
 			{
-				printf("\r\nGRESKA!\r\nMemorija nije alocirana.");
-				break;
-			}
-
-			q->eksponent = i->eksponent + j->eksponent;
-			q->koeficijent = i->koeficijent * j->koeficijent;
-
-			tmp = M;
-
-			while (tmp->Next != NULL && tmp->Next->eksponent > q->eksponent)
-				tmp = tmp->Next;
-
-			if (tmp->Next != NULL && tmp->Next->eksponent == q->eksponent)
-			{
-				tmp->Next->koeficijent += q->koeficijent;
+				temp->Next->coefficijent += q->coefficijent;
 				free(q);
 
-				if (tmp->Next->koeficijent == 0)
+				if (temp->Next->coefficijent == 0)
 				{
-					q = tmp->Next;
-					tmp->Next = q->Next;
+					q = temp->Next;
+					temp->Next = q->Next;
 
 					free(q);
 				}
 			}
 			else
 			{
-				q->Next = tmp->Next;
-				tmp->Next = q;
+				q->Next = temp->Next;
+				temp->Next = q;
 			}
 
-			j = j->Next;
+			P2 = P2->Next;
 		}
-		i = i->Next;
+		P1 = P1->Next;
 	}
 
-	return err;
+	return 0;
 }
