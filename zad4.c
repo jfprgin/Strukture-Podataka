@@ -4,7 +4,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include<ctype.h>
 
 struct _node;
 typedef struct _node Node;
@@ -34,13 +33,17 @@ int main()
 
 	printf("\nUnesite ime datoteke iz koje zelite ucitati prvi polinom: ");
 	scanf(" %s", filename);
-	ReadFromFile(filename, &head1);
+	if (ReadFromFile(filename, &head1) == -1)
+		return -1;
+
 	printf("\nUnesite ime datoteke iz koje zelite ucitati drugi polinom: ");
 	scanf(" %s", filename);
-	ReadFromFile(filename, &head2);
+	if (ReadFromFile(filename, &head2) == -1)
+		return -1;
 	
 	printf("\nPolinom 1 = ");
 	PrintList(head1.Next);
+
 	printf("\nPolinom 2 = ");
 	PrintList(head2.Next);
 
@@ -55,8 +58,7 @@ int main()
 	return 0;
 }
 
-Position CreateNode(Position p)//Prominit da bude Position p jer ne znam smiju li se funckije bez argumenta
-{
+Position CreateNode(Position p)
 	Position q = NULL;
 
 	q = (Position)malloc(sizeof(Node));
@@ -90,10 +92,12 @@ int ReadFromFile(char* filename, Position p)
 		prev = p;
 
 		while (temp != NULL && temp->exponent > q->exponent) {
-			q->Next = temp;
+			prev = temp;
 			temp = temp->Next;
 		}
+
 		prev->Next = q;
+
 		if (temp != NULL)
 			q->Next = temp;
 		else
@@ -104,15 +108,15 @@ int ReadFromFile(char* filename, Position p)
 	return 0;
 }
 
-int PrintList(Position P)
+int PrintList(Position p)
 {
-	while (P != NULL)
+	while (p != NULL)
 	{
-		if (P->coefficijent > 0)
-			printf(" +%dx^%d", P->coefficijent, P->exponent);
+		if (p->coefficijent > 0)
+			printf(" +%dx^%d", p->coefficijent, p->exponent);
 		else
-			printf(" %dx^%d", P->coefficijent, P->exponent);
-		P = P->Next;
+			printf(" %dx^%d", p->coefficijent, p->exponent);
+		p = p->Next;
 	}
 
 	return 0;
