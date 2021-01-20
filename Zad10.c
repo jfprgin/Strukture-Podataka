@@ -4,7 +4,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include<stdbool.h>
 
 #define BUFFER_LENGTH 1024
 
@@ -29,14 +28,12 @@ struct stack{
 
 int CreateNodeT(TPosition*);
 int CreateNodeS(SPosition*);
-TPosition ReadFromFile(char*, TPosition, SPosition);  //SPosition*
+TPosition ReadFromFile(char*, TPosition, SPosition);
 int Push(TPosition, SPosition);
-TPosition Pop(SPosition);		//maybe promini
+TPosition Pop(SPosition);
 int PrintInOrder(TPosition);
 int DeleteTree(TPosition);
 int DeleteStack(SPosition);
-bool IsNumber(char);
-bool IsOperator(char);
 
 int main()
 {
@@ -237,18 +234,4 @@ int DeleteStack(SPosition S)
 	free(S);
 
 	return 0;
-}
-
-bool IsNumber(char c)
-{
-	if (c >= '0' && c <= '9')
-		return true;
-	return false;
-}
-
-bool IsOperator(char c)
-{
-	if (c == '+' || c == '-' || c == '*' || c == '/')
-		return true;
-	return false;
 }
