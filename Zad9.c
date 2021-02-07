@@ -140,7 +140,7 @@ Position Delete(Position p, int n)
 			p->El = temp->El;
 			p->Right = Delete(p->Right, temp->El);
 			/* or Max from Left subtree
-			tmp = FindMax(P->Left);
+			tmp = FindMax(P->Right);
 			P->El = tmp->El;
 			P->Left = Delete(P->Left, tmp->El);
 			*/
